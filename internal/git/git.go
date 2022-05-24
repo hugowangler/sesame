@@ -7,8 +7,10 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 )
 
+// see https://www.debuggex.com/r/fFggA8Uc4YYKjl34
 const repoRegex = `((git@|https://)(?P<host>[\w\.@]+)(/|:))(?P<owner>[\w,\-,\_]+)/(?P<name>[\w,\-,\_]+)(.git){0,1}((/){0,1})`
 
 var subexps = []string{
@@ -44,10 +46,7 @@ func FindRepos(path string) ([]*Repository, error) {
 
 	var repos []*Repository
 	for _, p := range gitConfigPaths {
-		repo, err := parseGitConfig(p)
-		if err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "could not parse .git/ directory: path=%s, err=%v", p, err)
-		}
+		repo := parseGitConfig(p)
 		if repo != nil {
 			repos = append(repos, repo)
 		}
@@ -56,15 +55,16 @@ func FindRepos(path string) ([]*Repository, error) {
 	return repos, nil
 }
 
-func parseGitConfig(path string) (*Repository, error) {
+func parseGitConfig(path string) *Repository {
 	cfg, err := ini.Load(path + "/config")
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "could not read .git/config file: path=%s, err=%v", path, err)
+		_, _ = fmt.Fprintf(os.Stderr, "could not read .git/config file: path=%s, err=%v\n", path, err)
+		return nil
 	}
 	url := cfg.Section("remote \"origin\"").Key("url").String()
 	if url == "" {
-		_, _ = fmt.Fprintf(os.Stderr, "could not find a URL in .git/config, ignoring repository: path=%s", path)
-		return nil, nil
+		_, _ = fmt.Fprintf(os.Stderr, "could not find a URL in .git/config, ignoring repository: path=%s\n", path)
+		return nil
 	}
 
 	re := regexp.MustCompile(repoRegex)
@@ -75,17 +75,17 @@ func parseGitConfig(path string) (*Repository, error) {
 		if match == "" {
 			_, _ = fmt.Fprintf(
 				os.Stderr,
-				"could not regex match required repository information from the found URL: path=%s url=%s",
+				"could not regex match required repository information from the found URL: path=%s url=%s\n",
 				path,
 				url,
 			)
-			return nil, nil
+			return nil
 		}
-		m[s] = match
+		m[s] = strings.ToLower(match)
 	}
 	return &Repository{
 		Host:  m[subexps[0]],
 		Owner: m[subexps[1]],
 		Name:  m[subexps[2]],
-	}, nil
+	}
 }
