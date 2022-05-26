@@ -3,6 +3,7 @@ module github.com/hugowangler/sesame
 go 1.18
 
 require (
+	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/viper v1.11.0
 	gopkg.in/ini.v1 v1.66.4

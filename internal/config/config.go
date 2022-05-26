@@ -12,13 +12,21 @@ type Config struct {
 	Repositories map[string]string `yaml:"repositories"`
 }
 
-func StoreRepositories(repos []*git.Repository) (int, error) {
-	var numStored int
+func GetConfig() (*Config, error) {
 	var config Config
 	config.Repositories = make(map[string]string)
 	err := viper.Unmarshal(&config)
 	if err != nil {
-		return 0, fmt.Errorf("failed to unmarshal config file: err=%v", err)
+		return nil, fmt.Errorf("failed to unmarshal config file: err=%v", err)
+	}
+	return &config, nil
+}
+
+func StoreRepositories(repos []*git.Repository) (int, error) {
+	var numStored int
+	config, err := GetConfig()
+	if err != nil {
+		return 0, err
 	}
 	for _, r := range repos {
 		if _, exists := config.Repositories[r.Name]; !exists {
