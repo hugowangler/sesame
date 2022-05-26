@@ -27,7 +27,7 @@ to quickly create a Cobra application.`,
 		}
 		numStored, err := config.StoreRepositories(repos)
 		if err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "could not store found repositories in config: err=%v\n", err)
+			_, _ = fmt.Fprintf(os.Stderr, "could not store found repositories in config: %v\n", err)
 			os.Exit(1)
 		}
 		fmt.Printf("added %d new repositories to Sesame\n", numStored)
