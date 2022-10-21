@@ -11,12 +11,13 @@ import (
 var addCmd = &cobra.Command{
 	Use:   "add [PATH]",
 	Short: "Adds any found repositories starting from PATH",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Long: `Adds any found repositories starting from the specified PATH.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+The repositories are found by performing a walk in the file tree rooted at PATH.
+Whenever a .git/ directory is found the git config file is parsed in order to
+extract the remote origin. The remote origin is then Regex matched to construct 
+the URL that is stored in the Sesame config file.
+`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Printf("searching for new repositories in %s\n", args[0])
