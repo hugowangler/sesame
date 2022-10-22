@@ -8,16 +8,21 @@ import (
 	"os"
 )
 
+type RepositoryEntry struct {
+	Url       string `yaml:"url"`
+	Directory string `yaml:"directory"`
+}
+
 type Config struct {
-	Repositories map[string]string `yaml:"repositories"`
+	Repositories map[string]RepositoryEntry `yaml:"repositories"`
 }
 
 func GetConfig() (*Config, error) {
 	var config Config
-	config.Repositories = make(map[string]string)
+	config.Repositories = make(map[string]RepositoryEntry)
 	err := viper.Unmarshal(&config)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal config file: err=%v", err)
+		return nil, fmt.Errorf("failed to unmarshal config file: %v", err)
 	}
 	return &config, nil
 }
@@ -30,7 +35,7 @@ func StoreRepositories(repos []*git.Repository) (int, error) {
 	}
 	for _, r := range repos {
 		if _, exists := config.Repositories[r.Name]; !exists {
-			config.Repositories[r.Name] = r.Url()
+			config.Repositories[r.Name] = RepositoryEntry{Url: r.Url(), Directory: r.Directory}
 			numStored++
 		}
 	}
@@ -42,11 +47,11 @@ func StoreRepositories(repos []*git.Repository) (int, error) {
 			cobra.CheckErr(err)
 			err = viper.WriteConfigAs(home + "/.config/.sesame.yaml")
 			if err != nil {
-				return 0, fmt.Errorf("failed to create config file: err=%v\n", err)
+				return 0, fmt.Errorf("failed to create config file: %v\n", err)
 			}
 			return numStored, nil
 		}
-		return 0, fmt.Errorf("failed to update existing config file: err=%v\n", err)
+		return 0, fmt.Errorf("failed to update existing config file: %v\n", err)
 	}
 	return numStored, nil
 }
