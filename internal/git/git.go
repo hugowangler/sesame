@@ -83,6 +83,10 @@ func parseGitConfig(path string) *Repository {
 	submatches := re.FindStringSubmatch(url)
 	m := make(map[string]string, len(subexps))
 	for _, s := range subexps {
+		if len(submatches) != len(subexps) {
+			_, _ = fmt.Fprintf(os.Stderr, "could not parse URL, ignoring repository: path=%s, url=%s\n", path, url)
+			return nil
+		}
 		match := submatches[re.SubexpIndex(s)]
 		if match == "" {
 			_, _ = fmt.Fprintf(
