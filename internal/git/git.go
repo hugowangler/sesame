@@ -11,7 +11,7 @@ import (
 )
 
 // see https://www.debuggex.com/r/fFggA8Uc4YYKjl34
-const repoRegex = `((git@|https://)(?P<host>[\w\.@]+)(/|:))(?P<owner>[\w,\-,\_]+)/(?P<name>[\w,\-,\_]+)(.git){0,1}((/){0,1})`
+const repoRegex = `((git@|https://|http://)(?P<host>[\w\.@]+)(/|:))(?P<owner>[\w,\-,\_]+)/(?P<name>[\w,\-,\_]+)(.git){0,1}((/){0,1})`
 
 var subexps = []string{
 	"host",
