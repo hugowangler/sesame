@@ -96,7 +96,7 @@ func parseGitConfig(path string) *Repository {
 		m[s] = strings.ToLower(match)
 	}
 
-	pathSplit := strings.Split(strings.TrimSuffix(path, "/.git"), "/")
+	pathSplit := strings.Split(strings.TrimSuffix(filepath.ToSlash(path), "/.git"), "/")
 	dirName := pathSplit[len(pathSplit)-1]
 	return &Repository{
 		host:      m[subexps[0]],

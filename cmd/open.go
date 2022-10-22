@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/browser"
 	"github.com/spf13/cobra"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -37,7 +38,7 @@ corresponds to the current working directory.`,
 				)
 				os.Exit(1)
 			}
-			dirSplit := strings.Split(workingDir, "/")
+			dirSplit := strings.Split(filepath.ToSlash(workingDir), "/")
 			dirName := dirSplit[len(dirSplit)-1]
 			entry, exists := conf.Repositories[dirName]
 			if !exists {
