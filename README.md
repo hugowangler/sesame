@@ -65,6 +65,8 @@ sesame open
 
 After opening the repository for the first time it will be added as an entry in the config file, so you can open it from anywhere in the future.
 
+It should also be noted that `sesame open` will search upwards along the curreent working directory for a known git repository. This means that if you are inside a git repository and run `sesame open` from a subdirectory, it will still open the repository in your browser.
+
 ### Aliasing
 To make navigation event easier, I recommend at least aliasing the `sesame open` command to something shorter. I personally use the following alias:
 

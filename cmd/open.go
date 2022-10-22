@@ -41,6 +41,14 @@ corresponds to the current working directory.`,
 			dirSplit := strings.Split(filepath.ToSlash(workingDir), "/")
 			dirName := dirSplit[len(dirSplit)-1]
 			entry, exists := conf.Repositories[dirName]
+			// try to find the repository upwards in the working dir
+			for i := len(dirSplit) - 1; i >= 0; i-- {
+				dirName = dirSplit[i]
+				entry, exists = conf.Repositories[dirName]
+				if exists {
+					break
+				}
+			}
 			if !exists {
 				fmt.Printf("current directory has not been added to sesame. Do you want to add it? [Y/n]: ")
 				scanner := bufio.NewScanner(os.Stdin)
