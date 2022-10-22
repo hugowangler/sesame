@@ -20,13 +20,14 @@ var subexps = []string{
 }
 
 type Repository struct {
-	Host  string
-	Owner string
-	Name  string
+	host      string
+	owner     string
+	Name      string
+	Directory string
 }
 
 func (r *Repository) Url() string {
-	return fmt.Sprintf("https://%s/%s/%s", r.Host, r.Owner, r.Name)
+	return fmt.Sprintf("https://%s/%s/%s", r.host, r.owner, r.Name)
 }
 
 func FindRepos(path string) ([]*Repository, error) {
@@ -53,6 +54,17 @@ func FindRepos(path string) ([]*Repository, error) {
 	}
 
 	return repos, nil
+}
+
+func FindRepo(path string) (*Repository, error) {
+	fileInfo, err := os.Stat(path + "/.git")
+	if err != nil {
+		return nil, fmt.Errorf("could not find .git directory: path=%s, err=%v", path, err)
+	}
+	if !fileInfo.IsDir() {
+		return nil, fmt.Errorf("could not find .git directory: path=%s", path)
+	}
+	return parseGitConfig(path + "/.git"), nil
 }
 
 func parseGitConfig(path string) *Repository {
@@ -83,9 +95,14 @@ func parseGitConfig(path string) *Repository {
 		}
 		m[s] = strings.ToLower(match)
 	}
+
+	pathSplit := strings.Split(strings.TrimSuffix(path, "/.git"), "/")
+	dirName := pathSplit[len(pathSplit)-1]
 	return &Repository{
-		Host:  m[subexps[0]],
-		Owner: m[subexps[1]],
-		Name:  m[subexps[2]],
+		host:      m[subexps[0]],
+		owner:     m[subexps[1]],
+		Name:      m[subexps[2]],
+		Directory: dirName,
 	}
+
 }

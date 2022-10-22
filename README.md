@@ -57,6 +57,14 @@ To open a git project in your browser, you can simply run the following command:
 sesame open REPO_NAME
 ```
 
+If you are inside a git repository that you would like to add to sesame, you can simply run the following command:
+
+```bash
+sesame open
+```
+
+After opening the repository for the first time it will be added as an entry in the config file, so you can open it from anywhere in the future.
+
 ### Aliasing
 To make navigation event easier, I recommend at least aliasing the `sesame open` command to something shorter. I personally use the following alias:
 
