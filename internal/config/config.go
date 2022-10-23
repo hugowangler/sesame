@@ -34,10 +34,8 @@ func StoreRepositories(repos []*git.Repository) (int, error) {
 		return 0, err
 	}
 	for _, r := range repos {
-		if _, exists := config.Repositories[r.Name]; !exists {
-			config.Repositories[r.Name] = RepositoryEntry{Url: r.Url(), Directory: r.Directory}
-			numStored++
-		}
+		config.Repositories[r.Name] = RepositoryEntry{Url: r.Url(), Directory: r.Directory}
+		numStored++
 	}
 	viper.Set("repositories", config.Repositories)
 	err = viper.WriteConfig()
