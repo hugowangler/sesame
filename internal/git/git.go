@@ -105,7 +105,7 @@ func parseGitConfig(path string) *Repository {
 	return &Repository{
 		host:      m[subexps[0]],
 		owner:     m[subexps[1]],
-		Name:      m[subexps[2]],
+		Name:      strings.ToLower(m[subexps[2]]),
 		Directory: dirName,
 	}
 
