@@ -22,17 +22,20 @@ To see the available commands, run `sesame --help`:
 
 ```
 Usage:
-    sesame [command]
+  sesame [command]
 
 Available Commands:
   add         Adds any found repositories starting from PATH
   completion  Generate the autocompletion script for the specified shell
+  config      Operations related to the config file
   help        Help about any command
-  open        Opens a repository that is stored in your config in your browser
+  open        Opens a repository that is stored in your config in your browser.
 
 Flags:
-    --config string   config file (default is $HOME/.config/.sesame.yaml)
-    -h, --help            help for sesame
+      --config string   config file (default is $HOME/.config/.sesame.yaml)
+  -h, --help            help for sesame
+
+Use "sesame [command] --help" for more information about a command.
 ```
 
 ### Adding git projects to sesame
