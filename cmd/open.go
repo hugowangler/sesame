@@ -3,13 +3,14 @@ package cmd
 import (
 	"bufio"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/hugowangler/sesame/internal/config"
 	"github.com/hugowangler/sesame/internal/git"
 	"github.com/pkg/browser"
 	"github.com/spf13/cobra"
-	"os"
-	"path/filepath"
-	"strings"
 )
 
 // openCmd represents the open command
@@ -72,17 +73,17 @@ corresponds to the current working directory.`,
 					fmt.Printf("successfully added current directory\n")
 					conf, err = config.GetConfig()
 					if err != nil {
-						_, _ = fmt.Fprintf(os.Stderr, "could not open repository: %v\n", err)
+						_, _ = fmt.Fprintf(os.Stderr, "could not read the config file: %v\n", err)
 						os.Exit(1)
 					}
-					entry = conf.Repositories[dirName]
+					entry = conf.Repositories[repo.Name]
 				default:
 					os.Exit(0)
 				}
 			}
 			err = browser.OpenURL(entry.Url)
 			if err != nil {
-				_, _ = fmt.Fprintf(os.Stderr, "could not read the config file: %v\n", err)
+				_, _ = fmt.Fprintf(os.Stderr, "could not open repository: %v\n", err)
 				os.Exit(1)
 			}
 		} else {
