@@ -2,15 +2,17 @@ package config
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/hugowangler/sesame/internal/git"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"os"
 )
 
 type RepositoryEntry struct {
-	Url       string `yaml:"url"`
-	Directory string `yaml:"directory"`
+	Url       string   `yaml:"url"`
+	Directory string   `yaml:"directory"`
+	Links     []string `yaml:"links"`
 }
 
 type Config struct {
@@ -45,11 +47,28 @@ func StoreRepositories(repos []*git.Repository) (int, error) {
 			cobra.CheckErr(err)
 			err = viper.WriteConfigAs(home + "/.config/.sesame.yaml")
 			if err != nil {
-				return 0, fmt.Errorf("failed to create config file: %v\n", err)
+				return 0, fmt.Errorf("failed to create config file: %v", err)
 			}
 			return numStored, nil
 		}
-		return 0, fmt.Errorf("failed to update existing config file: %v\n", err)
+		return 0, fmt.Errorf("failed to update existing config file: %v", err)
 	}
 	return numStored, nil
+}
+
+func StoreLink(repo string, URL string) (int, error) {
+	config, err := GetConfig()
+	if err != nil {
+		return 0, err
+	}
+	confRepo, exists := config.Repositories[repo]
+	if !exists {
+		return 0, fmt.Errorf("repository does not exist in the config file: repo=%s", repo)
+	}
+	confRepo.Links = append(confRepo.Links, URL)
+	err = viper.WriteConfig()
+	if err != nil {
+		return 0, fmt.Errorf("failed to write config file: %v", err)
+	}
+	return len(confRepo.Links), nil
 }
