@@ -28,7 +28,7 @@ var viewCmd = &cobra.Command{
 			os.Exit(1)
 		}
 		fmt.Printf("viewing config file in %s:\n\n", viper.ConfigFileUsed())
-		fmt.Printf(string(configContent))
+		fmt.Print(string(configContent))
 	},
 }
 
