@@ -1,12 +1,16 @@
 # sesame
 
-`sesame` is a CLI tool that helps you effortlessly navigate to your favourite `git` projects from the terminal. The main idea it to have a small CLI tool that you can build upon with aliases to make navigation even easier.
+`sesame` is a CLI tool that helps you effortlessly navigate to your favourite `git` projects from the terminal. The main idea is to have a small CLI tool that you can build upon with aliases to make navigation even easier.
 
 The CLI is built using [Cobra](https://github.com/spf13/cobra) together with [Viper](https://github.com/spf13/viper) to handle configuration.
 
 ## Installation
 
 `sesame` can be installed by downloading the binary from the [releases page](https://github.com/hugowangler/sesame/releases)
+
+## Prerequisites
+
+`sesame` expects the `git` executable to be installed and available on `PATH`. It uses Git to resolve the current repository, including linked worktrees, when running `sesame open` without an explicit repository name.
 
 ### Building from source
 
@@ -68,7 +72,9 @@ sesame open
 
 After opening the repository for the first time it will be added as an entry in the config file, so you can open it from anywhere in the future.
 
-It should also be noted that `sesame open` will search upwards along the curreent working directory for a known git repository. This means that if you are inside a git repository and run `sesame open` from a subdirectory, it will still open the repository in your browser.
+It should also be noted that `sesame open` will search upwards along the current working directory for a known git repository. This means that if you are inside a git repository and run `sesame open` from a subdirectory, it will still open the repository in your browser.
+
+When no known repository name is found in the current path, `sesame open` asks Git to resolve the current repository. This means it can also open the original repository when run from a linked git worktree or a subdirectory inside one.
 
 ### Aliasing
 To make navigation event easier, I recommend at least aliasing the `sesame open` command to something shorter. I personally use the following alias:

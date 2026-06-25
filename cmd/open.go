@@ -51,6 +51,12 @@ corresponds to the current working directory.`,
 				}
 			}
 			if !exists {
+				repo, err := git.FindRepo(workingDir)
+				if err == nil {
+					entry, exists = conf.Repositories[repo.Name]
+				}
+			}
+			if !exists {
 				fmt.Printf("current directory has not been added to sesame. Do you want to add it? [Y/n]: ")
 				scanner := bufio.NewScanner(os.Stdin)
 				scanner.Scan()

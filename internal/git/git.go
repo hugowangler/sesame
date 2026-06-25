@@ -1,13 +1,17 @@
 package git
 
 import (
+	"bytes"
+	"context"
 	"fmt"
 	"gopkg.in/ini.v1"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 )
 
 // see https://www.debuggex.com/r/fFggA8Uc4YYKjl34
@@ -47,7 +51,7 @@ func FindRepos(path string) ([]*Repository, error) {
 
 	var repos []*Repository
 	for _, p := range gitConfigPaths {
-		repo := parseGitConfig(p)
+		repo := parseGitConfig(filepath.Join(p, "config"), filepath.Dir(p))
 		if repo != nil {
 			repos = append(repos, repo)
 		}
@@ -57,34 +61,70 @@ func FindRepos(path string) ([]*Repository, error) {
 }
 
 func FindRepo(path string) (*Repository, error) {
-	fileInfo, err := os.Stat(path + "/.git")
+	topLevel, err := runGit(path, "rev-parse", "--show-toplevel")
 	if err != nil {
-		return nil, fmt.Errorf("could not find .git directory: path=%s, err=%v", path, err)
+		return nil, fmt.Errorf("could not find git repository: path=%s, err=%v", path, err)
 	}
-	if !fileInfo.IsDir() {
-		return nil, fmt.Errorf("could not find .git directory: path=%s", path)
+
+	url, err := runGit(path, "config", "--local", "--get", "remote.origin.url")
+	if err != nil {
+		return nil, fmt.Errorf("could not find remote origin URL: path=%s, err=%v", path, err)
 	}
-	return parseGitConfig(path + "/.git"), nil
+
+	repo := parseRepositoryURL(url, topLevel, path)
+	if repo == nil {
+		return nil, fmt.Errorf("could not parse remote origin URL: path=%s, url=%s", path, url)
+	}
+
+	return repo, nil
 }
 
-func parseGitConfig(path string) *Repository {
-	cfg, err := ini.Load(path + "/config")
+func runGit(path string, args ...string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "git", append([]string{"-C", path}, args...)...)
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	if err := cmd.Run(); err != nil {
+		if ctx.Err() == context.DeadlineExceeded {
+			return "", fmt.Errorf("git command timed out")
+		}
+		message := strings.TrimSpace(stderr.String())
+		if message == "" {
+			message = err.Error()
+		}
+		return "", fmt.Errorf("%s", message)
+	}
+
+	return strings.TrimSpace(stdout.String()), nil
+}
+
+func parseGitConfig(configPath string, repoPath string) *Repository {
+	cfg, err := ini.Load(configPath)
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "could not read .git/config file: path=%s, err=%v\n", path, err)
+		_, _ = fmt.Fprintf(os.Stderr, "could not read .git/config file: path=%s, err=%v\n", configPath, err)
 		return nil
 	}
 	url := cfg.Section("remote \"origin\"").Key("url").String()
 	if url == "" {
-		_, _ = fmt.Fprintf(os.Stderr, "could not find a URL in .git/config, ignoring repository: path=%s\n", path)
+		_, _ = fmt.Fprintf(os.Stderr, "could not find a URL in .git/config, ignoring repository: path=%s\n", configPath)
 		return nil
 	}
 
+	return parseRepositoryURL(url, repoPath, configPath)
+}
+
+func parseRepositoryURL(url string, repoPath string, sourcePath string) *Repository {
 	re := regexp.MustCompile(repoRegex)
 	submatches := re.FindStringSubmatch(url)
 	m := make(map[string]string, len(subexps))
 	for _, s := range subexps {
 		if len(submatches) < len(subexps) {
-			_, _ = fmt.Fprintf(os.Stderr, "could not parse URL, ignoring repository: path=%s, url=%s\n", path, url)
+			_, _ = fmt.Fprintf(os.Stderr, "could not parse URL, ignoring repository: path=%s, url=%s\n", sourcePath, url)
 			return nil
 		}
 		match := submatches[re.SubexpIndex(s)]
@@ -92,7 +132,7 @@ func parseGitConfig(path string) *Repository {
 			_, _ = fmt.Fprintf(
 				os.Stderr,
 				"could not regex match required repository information from the found URL: path=%s url=%s\n",
-				path,
+				sourcePath,
 				url,
 			)
 			return nil
@@ -100,13 +140,10 @@ func parseGitConfig(path string) *Repository {
 		m[s] = strings.ToLower(match)
 	}
 
-	pathSplit := strings.Split(strings.TrimSuffix(filepath.ToSlash(path), "/.git"), "/")
-	dirName := pathSplit[len(pathSplit)-1]
 	return &Repository{
 		host:      m[subexps[0]],
 		owner:     m[subexps[1]],
 		Name:      strings.ToLower(m[subexps[2]]),
-		Directory: dirName,
+		Directory: filepath.Base(filepath.Clean(repoPath)),
 	}
-
 }
